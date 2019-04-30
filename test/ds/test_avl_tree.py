@@ -584,29 +584,29 @@ class TestAVLTree(unittest.TestCase):
         with self.assertRaises(AttributeError):
             AVLTree().floor(1)
 
-    def test_floor_withArgumentHavingFloorValue_shouldReturnGreaterStrictlyLowerElementFromBST(self):
+    def test_floor_withArgumentNotInBSTHavingFloorValue_shouldReturnGreaterStrictlyLowerElementFromBST(self):
         bst = AVLTree()
         for i in range(10):
             bst.put(i, i)
-        for i in range(1, 10):
-            self.assertEqual(i - 1, bst.floor(i))
+        for i in range(10):
+            self.assertEqual(i, bst.floor(i + 0.5))
 
     def test_floor_withArgumentNotHavingFloorValue_shouldReturnNone(self):
         bst = AVLTree()
         bst.put(1, 1)
-        self.assertIsNone(bst.floor(1))
+        self.assertIsNone(bst.floor(0))
 
-    def test_floor_withCompareFunctionAndArgumentHavingFloorValue_shouldReturnGreaterStrictlyLowerElementFromBST(self):
+    def test_floor_withCompareFunctionAndArgumentNotInBSTHavingFloorValue_shouldReturnGreaterStrictlyLowerElementFromBST(self):
         bst = AVLTree(self.cmp)
         for i in range(10):
             bst.put([0, i], i)
-        for i in range(1, 10):
-            self.assertEqual([0, i - 1], bst.floor([0, i]))
+        for i in range(10):
+            self.assertEqual([0, i], bst.floor([0, i + 0.5]))
 
-    def test_floor_withCompareFunctionAndArgumentNotHavingFloorValue_shouldReturnNone(self):
+    def test_floor_withCompareFunctionAndArgumentInBST_shouldReturnGivenArgument(self):
         bst = AVLTree(self.cmp)
         bst.put([0, 1], 1)
-        self.assertIsNone(bst.floor([0, 1]))
+        self.assertEqual([0, 1], bst.floor([0, 1]))
 
     def test_ceiling_withNoneTypeArgument_shouldRaiseValueError(self):
         with self.assertRaises(ValueError):
@@ -616,29 +616,31 @@ class TestAVLTree(unittest.TestCase):
         with self.assertRaises(AttributeError):
             AVLTree().ceiling(1)
 
-    def test_ceiling_withArgumentHavingCeilingValue_shouldReturnSmallerStrictlyGreaterElementFromBST(self):
+    def test_ceiling_withArgumentNotInBSTHavingCeilingValue_shouldReturnSmallerStrictlyGreaterElementFromBST(self):
         bst = AVLTree()
         for i in range(10):
             bst.put(i, i)
-        for i in range(9):
-            self.assertEqual(i + 1, bst.ceiling(i))
+        for i in range(10):
+            self.assertEqual(i, bst.ceiling(i - 0.5))
 
-    def test_ceiling_withArgumentNotHavingFloorValue_shouldReturnNone(self):
+    def test_ceiling_withArgumentInBST_shouldReturnGivenArgument(self):
         bst = AVLTree()
-        bst.put(1, 1)
-        self.assertIsNone(bst.ceiling(1))
+        for i in range(10):
+            bst.put(i, i)
+        for i in range(10):
+            self.assertEqual(i, bst.ceiling(i))
 
-    def test_ceiling_withCompareFunctionAndArgumentHavingFloorValue_shouldReturnSmallerStrictlyGreaterElementFromBST(self):
+    def test_ceiling_withCompareFunctionAndArgumentNotInBSTHavingCeilingValue_shouldReturnSmallerStrictlyGreaterElementFromBST(self):
         bst = AVLTree(self.cmp)
         for i in range(10):
             bst.put([0, i], i)
-        for i in range(9):
-            self.assertEqual([0, i + 1], bst.ceiling([0, i]))
+        for i in range(10):
+            self.assertEqual([0, i], bst.ceiling([0, i - 0.5]))
 
-    def test_ceiling_withCompareFunctionAndArgumentNotHavingFloorValue_shouldReturnNone(self):
+    def test_ceiling_withCompareFunctionAndArgumentNotHavingCeilingValue_shouldReturnNone(self):
         bst = AVLTree(self.cmp)
         bst.put([0, 1], 1)
-        self.assertIsNone(bst.ceiling([0, 1]))
+        self.assertIsNone(bst.ceiling([0, 2]))
 
     def test_predecessor_withNoneTypeArgument_shouldRaiseValueError(self):
         with self.assertRaises(ValueError):

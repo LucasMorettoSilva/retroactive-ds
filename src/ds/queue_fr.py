@@ -12,24 +12,35 @@ class QueueFR:
 
     def front(self, time=None):
         if time is None:
-            # return self.__front
+            return self.__front
             time = self.__cur_time
+
         if self.size(time) == 0:
             return None
+
         if self.__td.empty():
             return self.__te.get(self.__te.min())
+
         time = self.__td.floor(time)
+        if time is None:
+            return self.__te.get(self.__te.select(0))
+
         d = self.__td.rank(time)
         return self.__te.get(self.__te.select(d + 1))
 
     def back(self, time=None):
         if time is None:
             return self.__back
+
         if self.__te.empty():
             return None
+
         time = self.__te.floor(time)
+        if time is None:
+            return None
+
         rank = self.__te.rank(time)
-        return self.__te.get(self.__te.select(rank + 1))
+        return self.__te.get(self.__te.select(rank))
 
     def enqueue(self, val, time):
         if val  is None or \
@@ -46,9 +57,11 @@ class QueueFR:
 
     def dequeue(self, time):
         self.__check_time(time)
+
         self.__td.put(time, time)
         d = self.__td.rank(time)
         res = self.__te.get(self.__te.select(d))
+
         if self.__update_time(time):
             size = self.size()
             if size == 0:
@@ -57,13 +70,17 @@ class QueueFR:
             elif size == 1:
                 self.__front = self.__back
             else:
-                self.__front = self.__te.get(self.__te.select(self.__te.size() - size + 1))
+                self.__front = self.__te.get(self.__te.select(d + 1))
         return res
 
     def size(self, time=None):
         if time is None:
             time = self.__cur_time
         size = self.__te.rank(time) - self.__td.rank(time)
+        if time in self.__te:
+            size += 1
+        elif time in self.__td:
+            size -= 1
         if size < 0:
             return 0
         return size

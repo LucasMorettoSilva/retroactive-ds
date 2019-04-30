@@ -290,7 +290,9 @@ class AVLTree:
         if x is None:
             return None
         cmp = self.__compare(key, x.key)
-        if cmp <= 0:
+        if cmp == 0:
+            return x
+        if cmp < 0:
             return self.__floor(x.left, key)
         t = self.__floor(x.right, key)
         if t is not None:
@@ -311,12 +313,14 @@ class AVLTree:
         if x is None:
             return None
         cmp = self.__compare(key, x.key)
-        if cmp < 0:
-            t = self.__ceiling(x.left, key)
-            if t is not None:
-                return t
+        if cmp == 0:
             return x
-        return self.__ceiling(x.right, key)
+        if cmp > 0:
+            return self.__ceiling(x.right, key)
+        t = self.__ceiling(x.left, key)
+        if t is not None:
+            return t
+        return x
 
     def select(self, k):
         if self.empty():
