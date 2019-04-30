@@ -13,7 +13,6 @@ class QueueFR:
     def front(self, time=None):
         if time is None:
             return self.__front
-            time = self.__cur_time
 
         if self.size(time) == 0:
             return None
@@ -33,6 +32,9 @@ class QueueFR:
             return self.__back
 
         if self.__te.empty():
+            return None
+
+        if self.size(time) == 0:
             return None
 
         time = self.__te.floor(time)

@@ -260,8 +260,25 @@ class AVLTree:
             return x
         return self.__max(x.right)
 
-    def keys(self):
-        return self.keys_in_order()
+    def keys(self, lo, hi):
+        if lo is None or \
+           hi is None:
+           raise ValueError("Illegal argument of None Type")
+        q = []
+        self.__keys(self.__root, q, lo, hi)
+        return q
+
+    def __keys(self, x, q, lo, hi):
+        if x is None:
+            return
+        cmplo = self.__compare(lo, x.key)
+        cmphi = self.__compare(hi, x.key)
+        if cmplo < 0:
+            self.__keys(x.left, q, lo, hi)
+        if cmplo <= 0 <= cmphi:
+            q.append(x.key)
+        if cmphi > 0:
+            self.__keys(x.right, q, lo, hi)
 
     def keys_in_order(self):
         keys  = []
@@ -326,7 +343,7 @@ class AVLTree:
         if self.empty():
             raise AttributeError("AVLTree underflow")
         if k < 0 or k >= self.size():
-            raise ValueError("Argument 'k' s not in range [0, {}]".format(self.size() - 1))
+            raise ValueError("Argument 'k' is not in range [0, {}]".format(self.size() - 1))
         return self.__select(self.__root, k).key
 
     def __select(self, x, k):
