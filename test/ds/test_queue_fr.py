@@ -161,3 +161,53 @@ class TestQueueFR(unittest.TestCase):
         for t in range(1, 20):
             self.assertEqual(t, q.dequeue(t + 0.5))
             self.assertIsNone(q.front(t + 0.5))
+
+    def test_delete_withNoExistingOperationInGivenTime_shouldRaiseValueError(self):
+        q = QueueFR()
+        for i in range(-20, 20):
+            with self.assertRaises(ValueError):
+                q.delete(i)
+
+        for i in range(20):
+            q.enqueue(i, i)
+
+        for i in range(20):
+            with self.assertRaises(ValueError):
+                q.delete(i + 0.5)
+
+    def test_delete_withExistingOperationInGivenTime_shouldDeleteOperationAndPropagateItsEffects(self):
+        q = QueueFR()
+
+        # q = [enqueue(1), dequeue(), ..., enqueue(t), dequeue()]
+        # q will be an empty queue at the end of the loop
+        for t in range(1, 20):
+            q.enqueue(t, t)
+            q.dequeue(t + 0.5)
+
+        self.assertEqual(0, q.size())
+        self.assertIsNone(q.back())
+        self.assertIsNone(q.front())
+
+        # Deleting all dequeue operations
+        # q = [1, 2, ..., 19]
+        for t in range(1, 20):
+            q.delete(t + 0.5)
+            self.assertEqual(t, q.size())
+            self.assertEqual(t, q.back())
+            self.assertEqual(1, q.front())
+
+        # Deleting all enqueue operations
+        # q = []
+        for t in range(1, 20):
+            q.delete(t)
+            self.assertEqual(19 - t, q.size())
+            print(t)
+            if t == 19:
+                self.assertIsNone(q.back())
+                self.assertIsNone(q.front())
+            else:
+                self.assertEqual(19, q.back())
+                self.assertEqual(t + 1, q.front())
+
+
+

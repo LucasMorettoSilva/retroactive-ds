@@ -554,27 +554,71 @@ class TestAVLTree(unittest.TestCase):
         bst.delete_min()
         self.assertEqual("D", bst.min())
 
+    def test_keys_withNoneTypeArgument_shouldRaiseValueError(self):
+        bst = AVLTree()
+
+        with self.assertRaises(ValueError):
+            bst.keys(None, 1)
+        with self.assertRaises(ValueError):
+            bst.keys(1, None)
+
     def test_keys_withEmptyBST_shouldReturnEmptyList(self):
-        self.assertEqual([], AVLTree().keys())
+        self.assertEqual([], AVLTree().keys(1, 2))
 
     def test_keys_withCompareFunctionAndEmptyBST_shouldReturnEmptyList(self):
-        self.assertEqual([], AVLTree(self.cmp).keys())
+        self.assertEqual([], AVLTree(self.cmp).keys([0, 1], [0, 2]))
 
-    def test_keys_withNotEmptyBST_shouldReturnListOfKeysInBST(self):
+    def test_keys_withNotEmptyBSTAndArgumentsInBST_shouldReturnListOfKeysInGivenRangeIncludingGivenArguments(self):
         bst = AVLTree()
-        bst.put("A", 1)
-        bst.put("B", 2)
-        bst.put("C", 3)
-        bst.put("D", 4)
-        self.assertEqual(["A", "B", "C", "D"], bst.keys())
+        for i in range(20):
+            bst.put(i, i)
 
-    def test_keys_withCompareFunctionAndNotEmptyBST_shouldReturnListOfKeysInBST(self):
+        for i in range(20):
+            for j in range(i, 20):
+                if i == j:
+                    expected = [i]
+                else:
+                    expected = [e for e in range(i, j + 1)]
+                self.assertEqual(expected, bst.keys(i, j))
+
+    def test_keys_withNotEmptyBSTAndArgumentsNotInBST_shouldReturnListOfKeysInGivenRangeExcludingGivenArguments(self):
+        bst = AVLTree()
+        for i in range(0, 20, 2):
+            bst.put(i, i)
+
+        for i in range(-1, 20, 2):
+            for j in range(i, 20, 2):
+                if i == j:
+                    expected = []
+                else:
+                    expected = [e for e in range(i + 1, j + 1, 2)]
+                self.assertEqual(expected, bst.keys(i, j))
+
+    def test_keys_withCompareFunctionNotEmptyBSTAndArgumentsNotInBST_shouldReturnListOfKeysInGivenRangeExcludingGivenArguments(self):
         bst = AVLTree(self.cmp)
-        bst.put([0, 1], 1)
-        bst.put([0, 2], 2)
-        bst.put([0, 3], 3)
-        bst.put([0, 4], 4)
-        self.assertEqual([[0, 1], [0, 2], [0, 3], [0, 4]], bst.keys())
+        for i in range(0, 20, 2):
+            bst.put([0, i], i)
+
+        for i in range(-1, 20, 2):
+            for j in range(i, 20, 2):
+                if i == j:
+                    expected = []
+                else:
+                    expected = [[0, e] for e in range(i + 1, j + 1, 2)]
+                self.assertEqual(expected, bst.keys([0, i], [0, j]))
+
+    def test_keys_withCompareFunctionAndNotEmptyBST_shouldReturnListOfKeysInGivenRangeIncludingGivenArguments(self):
+        bst = AVLTree(self.cmp)
+        for i in range(20):
+            bst.put([0, i], i)
+
+        for i in range(20):
+            for j in range(i, 20):
+                if i == j:
+                    expected = [[0, i]]
+                else:
+                    expected = [[0, e] for e in range(i, j + 1)]
+                self.assertEqual(expected, bst.keys([0, i], [0, j]))
 
     def test_floor_withNoneTypeArgument_shouldRaiseValueError(self):
         with self.assertRaises(ValueError):

@@ -57,6 +57,21 @@ class QueueFR:
 
         self.__te.put(time, val)
 
+    def delete(self, time):
+        if time is None:
+           raise ValueError("Invalid 'time' argument of None Type")
+
+        if time in self.__te:
+            self.__te.delete(time)
+        elif time in self.__td:
+            self.__td.delete(time)
+        else:
+            raise ValueError("'time' argument does "
+                             "not correspond to any operation")
+
+        self.__back  = self.back(self.__cur_time)
+        self.__front = self.front(self.__cur_time)
+
     def dequeue(self, time):
         self.__check_time(time)
 
