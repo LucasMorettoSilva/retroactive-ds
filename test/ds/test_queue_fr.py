@@ -193,15 +193,14 @@ class TestQueueFR(unittest.TestCase):
         for t in range(1, 20):
             q.delete(t + 0.5)
             self.assertEqual(t, q.size())
-            self.assertEqual(t, q.back())
-            self.assertEqual(1, q.front())
+            self.assertEqual(19, q.back())
+            self.assertEqual(20 - t, q.front())
 
         # Deleting all enqueue operations
         # q = []
         for t in range(1, 20):
             q.delete(t)
             self.assertEqual(19 - t, q.size())
-            print(t)
             if t == 19:
                 self.assertIsNone(q.back())
                 self.assertIsNone(q.front())
