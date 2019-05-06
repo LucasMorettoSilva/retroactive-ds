@@ -90,6 +90,29 @@ class QueueFR:
                 self.__front = self.__te.get(self.__te.select(d + 1))
         return res
 
+    def print(self, time=None):
+        if time is None:
+            time = self.__cur_time
+
+        if self.size(time) == 0:
+            return "[]"
+
+        if self.__td.empty() or \
+           self.__td.floor(time) is None:
+            front_time =  self.__te.min()
+        else:
+            d = self.__td.rank(self.__td.floor(time))
+            front_time = self.__te.select(d + 1)
+
+        rank = self.__te.rank(self.__te.floor(time))
+        back_time = self.__te.select(rank)
+
+        keys = self.__te.keys(front_time, back_time)
+        res = []
+        for k in keys:
+            res.append(self.__te.get(k))
+        return str(res)
+
     def size(self, time=None):
         if time is None:
             time = self.__cur_time

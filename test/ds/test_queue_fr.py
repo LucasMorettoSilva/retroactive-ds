@@ -208,5 +208,29 @@ class TestQueueFR(unittest.TestCase):
                 self.assertEqual(19, q.back())
                 self.assertEqual(t + 1, q.front())
 
+    def test_print_withEmptyVersionQueue_shouldReturnEmptyQueueRepresentation(self):
+        q = QueueFR()
+        for i in range(-20, 20):
+            self.assertEqual("[]", q.print(i))
 
+        for i in range(1, 20):
+            q.enqueue(i, i)
+            q.dequeue(i + 0.5)
+            self.assertEqual("[]", q.print(i + 0.5))
+        self.assertEqual("[]", q.print())
 
+    def test_print_withNotEmptyQueue_shouldReturnFIFORepresentation(self):
+        q = QueueFR()
+        expected = []
+        for i in range(1, 20):
+            q.enqueue(i, i)
+            expected.append(i)
+            self.assertEqual(str(expected), q.print())
+            self.assertEqual(str(expected), q.print(i))
+            self.assertEqual(str(expected), q.print(i + 0.5))
+
+        for i in range(1, 20):
+            q.dequeue(i + 0.5)
+            expected.pop(0)
+            self.assertEqual("[]", q.print(i + 0.5))
+            self.assertEqual(str(expected), q.print())
