@@ -5,6 +5,9 @@ from src.ds.min_pq_pr import MinPQPR
 
 class TestMinPQPR(unittest.TestCase):
 
+    def test_constructor_shouldCreateEmptyPQ(self):
+        self.assertEqual(0, MinPQPR().size())
+
     def test_insert_withTimeAlwaysInPresent_shouldBehaveAsEphemeralMinPQ(self):
         pq = MinPQPR()
         for i in range(1, 20):
