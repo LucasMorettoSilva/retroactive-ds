@@ -1,12 +1,12 @@
 import unittest
 
-from src.ds.priority_queue_pr import PriorityQueuePR
+from src.ds.min_pq_pr import MinPQPR
 
 
-class TestPriorityQueuePR(unittest.TestCase):
+class TestMinPQPR(unittest.TestCase):
 
     def test_insert_withTimeAlwaysInPresent_shouldBehaveAsEphemeralMinPQ(self):
-        pq = PriorityQueuePR()
+        pq = MinPQPR()
         for i in range(1, 20):
             pq.insert(-i, i)
             self.assertEqual(-i, pq.min())
@@ -18,7 +18,7 @@ class TestPriorityQueuePR(unittest.TestCase):
             self.assertEqual(19 - i, pq.size())
 
     def test_insert_withDifferentTimes_shouldInsertItemAndPropagateChanges(self):
-        pq = PriorityQueuePR()
+        pq = MinPQPR()
 
         for i in range(1, 20):
             pq.insert(-i, i)

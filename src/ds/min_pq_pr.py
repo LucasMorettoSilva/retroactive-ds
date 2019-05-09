@@ -2,7 +2,7 @@ from src.ds.avl_tree       import AVLTree
 from src.ds.prefix_sum_bst import PrefixSumBST
 
 
-class PriorityQueuePR:
+class MinPQPR:
 
     def __init__(self):
         self.__now      = AVLTree()
