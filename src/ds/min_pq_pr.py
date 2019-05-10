@@ -40,8 +40,9 @@ class MinPQPR:
             self.__updates.put(time, key, 1)
 
     def delete_min(self, time):
-        if self.__updates.empty():
+        if self.__ins.empty():
             self.__updates.put(time, "delete-min", -1)
+            self.__update_time(time)
             return None
 
         if self.__update_time(time):
@@ -54,6 +55,7 @@ class MinPQPR:
 
             return min_k
 
+        bridge = time
         keys = self.__updates.keys(time, self.__updates.max())
         for t in keys:
             if self.__updates.prefix_sum(t) == 0:
@@ -67,7 +69,7 @@ class MinPQPR:
 
         min_k = None
         min_time  = None
-        for t in self.__ins:
+        for t in self.__ins.keys(self.__ins.min(), bridge):
             if t not in dels:
                 val = self.__ins.get(t)
                 if min_time is None or val < min_k:
