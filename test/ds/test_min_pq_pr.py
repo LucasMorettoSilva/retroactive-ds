@@ -73,5 +73,29 @@ class TestMinPQPR(unittest.TestCase):
                 self.assertEqual(-19, pq.min())
             self.assertEqual(19 - i, pq.size())
 
+    def test_delete_withNoneTypeArgument_shouldRaiseValueError(self):
+        pq = MinPQPR()
+        with self.assertRaises(ValueError):
+            pq.delete(None)
+
+    def test_delete_withNonExistingOperationAtGivenTime_shouldRaiseValueError(self):
+        pq = MinPQPR()
+        for i in range(-20, 20):
+            with self.assertRaises(ValueError):
+                pq.delete(i)
+
+    def test_delete_withTimeOfDeleteMinOperation_shouldRemoveDeleteMinOperationAndPropagateChanges(self):
+        pq = MinPQPR()
+        for i in range(1, 20):
+            pq.insert(-i, i)
+            pq.delete_min(i + 0.5)
+
+        for i in range(1, 20):
+            pq.delete(i + 0.5)
+            self.assertEqual(i, pq.size())
+            self.assertEqual(-i, pq.min())
+
+
+
 
 

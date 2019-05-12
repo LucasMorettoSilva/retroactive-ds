@@ -197,9 +197,6 @@ class PrefixSumBST:
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
-        if x.left is not None:
-            x.left.sum = x.left.r + self.__prefix_sum(x.left.left)
-        x.sum = self.__prefix_sum(y) + self.__prefix_sum(x.left)
         return y
 
     def __rotate_left(self, x):
@@ -210,9 +207,6 @@ class PrefixSumBST:
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
-        if x.right is not None:
-            x.right.sum = self.__prefix_sum(x) + x.right.sum
-        y.sum = y.r + self.__prefix_sum(x) + self.__prefix_sum(x.right)
         return y
 
     def delete(self, key):
@@ -225,20 +219,16 @@ class PrefixSumBST:
     def __delete(self, x, key, node):
         cmp = self.__compare(key, x.key)
         if cmp < 0:
-            x.sum -= node.r
             x.left = self.__delete(x.left, key, node)
         elif cmp > 0:
             x.right = self.__delete(x.right, key, node)
         else:
             if x.left is None:
-                x.right.sum -= node.r
                 return x.right
             if x.right is None:
                 return x.left
             y = x
             x = self.__min(y.right)
-            if y.right is not x:
-                x.sum -= node.r
             x.right = self.__delete_min(y.right, node.r)
             x.left = y.left
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
@@ -251,10 +241,7 @@ class PrefixSumBST:
         self.__root = self.__delete_min(self.__root, self.__min(self.__root).r)
 
     def __delete_min(self, x, r):
-        x.sum -= r
         if x.left is None:
-            if x.right is not None:
-                x.right.sum -= r
             return x.right
         x.left = self.__delete_min(x.left, r)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)

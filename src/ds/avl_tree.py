@@ -268,6 +268,26 @@ class AVLTree:
         self.__keys(self.__root, q, lo, hi)
         return q
 
+    def values(self, lo, hi):
+        if lo is None or \
+           hi is None:
+           raise ValueError("Illegal argument of None Type")
+        q = []
+        self.__values(self.__root, q, lo, hi)
+        return q
+
+    def __values(self, x, q, lo, hi):
+        if x is None:
+            return
+        cmplo = self.__compare(lo, x.key)
+        cmphi = self.__compare(hi, x.key)
+        if cmplo < 0:
+            self.__values(x.left, q, lo, hi)
+        if cmplo <= 0 <= cmphi:
+            q.append(x.val)
+        if cmphi > 0:
+            self.__values(x.right, q, lo, hi)
+
     def __keys(self, x, q, lo, hi):
         if x is None:
             return
