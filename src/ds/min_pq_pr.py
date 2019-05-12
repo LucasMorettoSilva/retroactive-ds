@@ -36,7 +36,7 @@ class MinPQPR:
         bridge = time
         keys = self.__updates.keys(self.__updates.min(), time)
         for t in keys:
-            if self.__updates.prefix_sum(t) == 0:
+            if t != time and self.__updates.prefix_sum(t) == 0:
                 bridge = t
 
         if self.__insertion.empty():
@@ -73,7 +73,7 @@ class MinPQPR:
         bridge = time
         keys = self.__updates.keys(time, self.__updates.max())
         for t in keys:
-            if self.__updates.prefix_sum(t) == 0:
+            if t != time and self.__updates.prefix_sum(t) == 0:
                 bridge = t
                 break
 
