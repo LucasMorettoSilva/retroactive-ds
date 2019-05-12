@@ -95,6 +95,19 @@ class TestMinPQPR(unittest.TestCase):
             self.assertEqual(i, pq.size())
             self.assertEqual(-i, pq.min())
 
+    def test_delete_withTimeOfInsertOperation_shouldRemoveInsertOperationAndPropagateChanges(self):
+        pq = MinPQPR()
+        for i in range(1, 20):
+            pq.insert(-i, i)
+
+        for i in range(19, 0, -1):
+            pq.delete(i)
+            self.assertEqual(i - 1, pq.size())
+            if i == 1:
+                self.assertIsNone(pq.min())
+            else:
+                self.assertEqual(-i + 1, pq.min())
+
 
 
 

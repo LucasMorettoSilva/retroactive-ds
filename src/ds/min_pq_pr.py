@@ -5,11 +5,14 @@ from src.ds.prefix_sum_bst import PrefixSumBST
 class MinPQPR:
 
     def __init__(self):
-        self.__min = None
-        self.__now      = AVLTree()
-        self.__ins      = AVLTree()
-        self.__updates  = PrefixSumBST()
-        self.__cur_time = None
+        self.__min       = None
+        self.__cur_time  = None
+        self.__now       = AVLTree()
+        self.__insertion = AVLTree()
+        self.__updates   = PrefixSumBST()
+
+    def empty(self):
+        return self.__min is None
 
     def size(self):
         return self.__now.size()
@@ -22,9 +25,9 @@ class MinPQPR:
 
     def insert(self, key, time):
         self.__update_time(time)
+        self.__insertion.put(time, key)
 
         if self.__updates.empty():
-            self.__ins.put(time, key)
             self.__now.put(key, time)
             self.__updates.put(time, key, 0)
             self.__update_min()
@@ -36,35 +39,26 @@ class MinPQPR:
             if self.__updates.prefix_sum(t) == 0:
                 bridge = t
 
-        if self.__ins.empty():
-            times = set()
+        if self.__insertion.empty():
+            keys = set()
         else:
-            times = set(self.__ins.keys(bridge, self.__ins.max()))
+            keys = set(self.__insertion.values(bridge, self.__insertion.max()))
+            keys = keys - set(self.__now.keys_in_order())
 
-        times = times - set(self.__now.keys_in_order())
-        max_k = None
-        max_t = None
-        for t in times:
-            cur = self.__ins.get(t)
-            if max_k is None or cur > max_k:
-                max_k = key
-                max_t = t
-
-        self.__ins.put(time, key)
-
-        if max_k == key:
-            self.__now.put(key, time)
-            self.__updates.put(time, key, 0)
+        if len(keys) == 0:
+            max_k = key
         else:
-            self.__now.put(max_k, max_t)
-            self.__updates.put(time, key, 1)
+            max_k = max(keys)
+
+        self.__now.put(max_k, 0)
+        self.__updates.put(time, key, int(max_k != key))
 
         self.__update_min()
 
     def delete_min(self, time):
         self.__updates.put(time, "delete-min", -1)
 
-        if self.__ins.empty():
+        if self.__insertion.empty():
             self.__update_time(time)
             return None
 
@@ -83,10 +77,10 @@ class MinPQPR:
                 bridge = t
                 break
 
-        if self.__ins.empty():
+        if self.__insertion.empty():
             keys = set()
         else:
-            keys = set(self.__ins.values(self.__ins.min(), bridge))
+            keys = set(self.__insertion.values(self.__insertion.min(), bridge))
             keys = keys.intersection(set(self.__now.keys_in_order()))
 
         min_k = min(keys)
@@ -107,13 +101,13 @@ class MinPQPR:
             bridge = time
             keys = self.__updates.keys(self.__updates.min(), time)
             for t in keys:
-                if self.__updates.prefix_sum(t) == 0:
+                if t != time and self.__updates.prefix_sum(t) == 0:
                     bridge = t
 
-            if self.__ins.empty():
+            if self.__insertion.empty():
                 keys = set()
             else:
-                keys = set(self.__ins.values(bridge, self.__ins.max()))
+                keys = set(self.__insertion.values(bridge, self.__insertion.max()))
                 keys = keys - set(self.__now.keys_in_order())
 
             self.__now.put(max(keys), 0)
@@ -121,14 +115,14 @@ class MinPQPR:
             bridge = time
             keys = self.__updates.keys(time, self.__updates.max())
             for t in keys:
-                if self.__updates.prefix_sum(t) == 0:
+                if t != time and self.__updates.prefix_sum(t) == 0:
                     bridge = t
                     break
 
-            if self.__ins.empty():
+            if self.__insertion.empty():
                 keys = set()
             else:
-                keys = set(self.__ins.values(self.__ins.min(), bridge))
+                keys = set(self.__insertion.values(self.__insertion.min(), bridge))
                 keys = keys.intersection(set(self.__now.keys_in_order()))
 
             min_k = min(keys)
