@@ -2,7 +2,7 @@ class PrefixSumBST:
 
     class __Node:
 
-        def __init__(self, key=None, val=None, height=0, size=0, r=0, sum=0):
+        def __init__(self, key=None, val=None, height=0, size=0, r=0, active=True):
             self.key = key
             self.val = val
             self.r = r
@@ -10,12 +10,11 @@ class PrefixSumBST:
             self.size = size
             self.left = None
             self.right = None
-            self.sum = sum
 
             # Retroactive heap
             self.max_sub = None
             self.min_sub = None
-            self.active  = True
+            self.active  = active
 
     def __init__(self, cmp=None):
         self.__root = None
@@ -36,7 +35,7 @@ class PrefixSumBST:
     def __parent(self, x, key, parent):
         if x is None:
             return None
-        cmp = self.__cmp(key, x.key)
+        cmp = self.__compare(key, x.key)
         if cmp < 0:
             return self.__parent(x.left, key, x)
         if cmp > 0:
@@ -47,7 +46,9 @@ class PrefixSumBST:
         x = self.__get(self.__root, key)
         x.active = active
         parent = self.__parent(self.__root, key, None)
-        self.__update_max_min(parent)
+        while parent is not None:
+            self.__update_max_min(parent)
+            parent = self.__parent(self.__root, parent.key, None)
 
     def max_sub(self, key):
         x = self.__get(self.__root, key)
@@ -198,31 +199,33 @@ class PrefixSumBST:
     def __contains__(self, key):
         return self[key] is not None
 
-    def put(self, key, val, r=0):
+    def put(self, key, val, r=0, active=True):
         if key is None:
             raise ValueError()
         if val is None:
             self.delete(key)
             return
-        self.__root = self.__put(self.__root, key, val, r, r)
+        self.__root = self.__put(self.__root, key, val, r, active)
 
-    def __put(self, x, key, val, r=0, sum=0):
+    def __put(self, x, key, val, r, active):
         if x is None:
-            return self.__Node(key, val, 0, 1, r, sum)
+            return self.__Node(key, val, 0, 1, r, active)
         cmp = self.__compare(key, x.key)
         if cmp < 0:
-            x.left = self.__put(x.left, key, val, r, sum)
+            x.left = self.__put(x.left, key, val, r, active)
         elif cmp > 0:
-            x.right = self.__put(x.right, key, val, r, sum + x.sum)
+            x.right = self.__put(x.right, key, val, r, active)
         else:
             x.val = val
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
 
         if x.max_sub is None or x.max_sub < key:
-            x.max_sub = key
+            if not active:
+                x.max_sub = key
         if x.min_sub is None or x.min_sub > key:
-            x.min_sub = key
+            if active:
+                x.min_sub = key
 
         return self.__balance(x)
 
@@ -230,11 +233,15 @@ class PrefixSumBST:
         max_sub = list(filter(None.__ne__, [self.__max_sub(x.left), self.__max_sub(x.right)]))
         min_sub = list(filter(None.__ne__, [self.__min_sub(x.left), self.__min_sub(x.right)]))
         if x.left is not None:
-            max_sub.append(x.left.key)
-            min_sub.append(x.left.key)
+            if x.left.active:
+                min_sub.append(x.left.key)
+            else:
+                max_sub.append(x.left.key)
         if x.right is not None:
-            max_sub.append(x.right.key)
-            min_sub.append(x.right.key)
+            if x.right.active:
+                min_sub.append(x.right.key)
+            else:
+                max_sub.append(x.right.key)
         if len(max_sub) == 0:
             x.max_sub = None
         else:
