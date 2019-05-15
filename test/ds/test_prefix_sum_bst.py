@@ -27,4 +27,11 @@ class TestPrefixSumBST(unittest.TestCase):
         for i in range(20):
             self.assertEqual(i + 1, bst.prefix_sum(i))
 
+    def test_height(self):
+        bst = PrefixSumBST()
+        for i in range(20):
+            bst.put(i, i, i)
+        for i in range(20):
+            print("key = {},\tmax_sub = {},\t\tmin_sub = {}".format(i, bst.max_sub(i), bst.min_sub(i)))
+
 

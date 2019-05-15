@@ -5,9 +5,13 @@ class AVLTree:
         def __init__(self, key=None, val=None, height=0, size=0):
             self.key = key
             self.val = val
+
+            # Order statistics
             self.height = height
-            self.size = size
-            self.left = None
+            self.size   = size
+
+            # Children
+            self.left  = None
             self.right = None
 
     def __init__(self, cmp=None):

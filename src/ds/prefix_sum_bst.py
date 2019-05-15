@@ -12,6 +12,11 @@ class PrefixSumBST:
             self.right = None
             self.sum = sum
 
+            # Retroactive heap
+            self.max_sub = None
+            self.min_sub = None
+            self.active  = True
+
     def __init__(self, cmp=None):
         self.__root = None
         self.__cmp  = cmp
@@ -27,6 +32,46 @@ class PrefixSumBST:
         if a > b:
             return 1
         return 0
+
+    def __parent(self, x, key, parent):
+        if x is None:
+            return None
+        cmp = self.__cmp(key, x.key)
+        if cmp < 0:
+            return self.__parent(x.left, key, x)
+        if cmp > 0:
+            return self.__parent(x.right, key, x)
+        return parent
+
+    def update(self, key, active):
+        x = self.__get(self.__root, key)
+        x.active = active
+        parent = self.__parent(self.__root, key, None)
+        self.__update_max_min(parent)
+
+    def max_sub(self, key):
+        x = self.__get(self.__root, key)
+        if x is None:
+            return None
+        return x.max_sub
+
+    def min_sub(self, key):
+        x = self.__get(self.__root, key)
+        if x is None:
+            return None
+        return x.min_sub
+
+    @staticmethod
+    def __max_sub(x):
+        if x is None:
+            return None
+        return x.max_sub
+
+    @staticmethod
+    def __min_sub(x):
+        if x is None:
+            return None
+        return x.min_sub
 
     def prefix_sum(self, key):
         if key is None:
@@ -173,7 +218,31 @@ class PrefixSumBST:
             x.val = val
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
+
+        if x.max_sub is None or x.max_sub < key:
+            x.max_sub = key
+        if x.min_sub is None or x.min_sub > key:
+            x.min_sub = key
+
         return self.__balance(x)
+
+    def __update_max_min(self, x):
+        max_sub = list(filter(None.__ne__, [self.__max_sub(x.left), self.__max_sub(x.right)]))
+        min_sub = list(filter(None.__ne__, [self.__min_sub(x.left), self.__min_sub(x.right)]))
+        if x.left is not None:
+            max_sub.append(x.left.key)
+            min_sub.append(x.left.key)
+        if x.right is not None:
+            max_sub.append(x.right.key)
+            min_sub.append(x.right.key)
+        if len(max_sub) == 0:
+            x.max_sub = None
+        else:
+            x.max_sub = max(max_sub)
+        if len(min_sub) == 0:
+            x.min_sub = None
+        else:
+            x.min_sub = min(min_sub)
 
     def __balance_factor(self, x):
         return self.__height(x.left) - self.__height(x.right)
@@ -197,6 +266,10 @@ class PrefixSumBST:
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
+
+        self.__update_max_min(x)
+        self.__update_max_min(y)
+
         return y
 
     def __rotate_left(self, x):
@@ -207,6 +280,10 @@ class PrefixSumBST:
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
+
+        self.__update_max_min(x)
+        self.__update_max_min(y)
+
         return y
 
     def delete(self, key):
@@ -231,8 +308,11 @@ class PrefixSumBST:
             x = self.__min(y.right)
             x.right = self.__delete_min(y.right, node.r)
             x.left = y.left
+            x.max_sub = y.max_sub
+            x.min_sub = y.min_sub
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
+        self.__update_max_min(x)
         return self.__balance(x)
 
     def delete_min(self):
@@ -246,6 +326,7 @@ class PrefixSumBST:
         x.left = self.__delete_min(x.left, r)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
+        self.__update_max_min(x)
         return self.__balance(x)
 
     def delete_max(self):
@@ -259,6 +340,7 @@ class PrefixSumBST:
         x.right = self.__delete_max(x.right)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
+        self.__update_max_min(x)
         return self.__balance(x)
 
     def min(self):
