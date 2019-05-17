@@ -8,7 +8,7 @@ class MinPQPR:
         self.__min       = None
         self.__cur_time  = None
         self.__now       = AVLTree()
-        self.__insertion = AVLTree()
+        self.__insertion = PrefixSumBST()
         self.__updates   = PrefixSumBST()
 
     def empty(self):
@@ -31,6 +31,9 @@ class MinPQPR:
             self.__now.put(key, time)
             self.__updates.put(time, key, 0)
             self.__update_min()
+
+            # self.__insertion.put(time, key, active=True)
+
             return
 
         bridge = time
@@ -38,6 +41,12 @@ class MinPQPR:
         for t in keys:
             if t != time and self.__updates.prefix_sum(t) == 0:
                 bridge = t
+
+        # max_in = self.__insertion.max_sub(bridge)
+        # if max_in is None:
+        #     max_k = key
+        # else:
+        #     max_k = max(max_in, key)
 
         if self.__insertion.empty():
             keys = set()
@@ -54,6 +63,8 @@ class MinPQPR:
         self.__updates.put(time, key, int(max_k != key))
 
         self.__update_min()
+
+        # self.__insertion.put(time, max_k, active=True)
 
     def delete_min(self, time):
         self.__updates.put(time, "delete-min", -1)
@@ -98,11 +109,12 @@ class MinPQPR:
                              "not correspond to any operation")
 
         if self.__updates.get(time) == "delete-min":
-            bridge = time
-            keys = self.__updates.keys(self.__updates.min(), time)
-            for t in keys:
-                if t != time and self.__updates.prefix_sum(t) == 0:
-                    bridge = t
+            # bridge = time
+            # keys = self.__updates.keys(self.__updates.min(), time)
+            # for t in keys:
+            #     if t != time and self.__updates.prefix_sum(t) == 0:
+            #         bridge = t
+            bridge = self.__updates.find_bridge_before(time)
 
             if self.__insertion.empty():
                 keys = set()
