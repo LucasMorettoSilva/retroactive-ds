@@ -43,7 +43,7 @@ class MinPQPR:
             if t != time and self.__updates.prefix_sum(t) == 0:
                 bridge = t
 
-        max_in = self.__insertion.max_sub(bridge)
+        max_in = self.__insertion.max_right(bridge)
         if max_in is None:
             max_k = key
         else:
@@ -63,13 +63,13 @@ class MinPQPR:
         if max_in and max_k in max_in:
             self.__now.put(max_in[1], max_in[0])
             self.__insertion.put(max_in[0], max_in[1], active=True)
-            self.__updates.put(max_in[0], max_in[1], 0)
+            # self.__updates.put(max_in[0], max_in[1], 0)
         else:
             self.__insertion.put(time, key, active=True)
             self.__now.put(key, time)
-            self.__updates.put(time, key, 0)
+            # self.__updates.put(time, key, 0)
 
-        # self.__updates.put(time, key, int(max_k != key))
+        self.__updates.put(time, key, int(max_k != key))
         self.__update_min()
 
 
@@ -90,7 +90,7 @@ class MinPQPR:
             self.__update_min()
 
             self.__insertion.put(min_t, min_k, False)
-            self.__updates.put(min_t, min_k, 1)
+            # self.__updates.put(min_t, min_k, 1)
 
             return min_k
 
@@ -101,7 +101,7 @@ class MinPQPR:
                 bridge = t
                 break
 
-        min_in = self.__insertion.min_sub(self.__insertion.floor(bridge))
+        min_in = self.__insertion.min_left(self.__insertion.floor(bridge))
         min_k = min_in[1]
 
         # if self.__insertion.empty():
@@ -115,7 +115,7 @@ class MinPQPR:
         self.__now.delete(min_k)
         self.__update_min()
         self.__insertion.put(min_in[0], min_in[1], False)
-        self.__updates.put(min_in[0], min_in[1], 1)
+        # self.__updates.put(min_in[0], min_in[1], 1)
 
         return min_k
 
@@ -140,7 +140,7 @@ class MinPQPR:
             #     keys = set(self.__insertion.values(bridge, self.__insertion.max()))
             #     keys = keys - set(self.__now.keys_in_order())
 
-            max_in = self.__insertion.max_sub(bridge)
+            max_in = self.__insertion.max_right(bridge)
 
             self.__now.put(max_in[1], max_in[0])
             self.__insertion.put(max_in[0], max_in[1], True)
@@ -160,7 +160,7 @@ class MinPQPR:
             #
             # min_k = min(keys)
 
-            min_in = self.__insertion.min_sub(bridge)
+            min_in = self.__insertion.min_left(bridge)
             min_k = min_in[1]
 
             self.__now.delete(min_k)
