@@ -54,6 +54,7 @@ class TestMinPQPR(unittest.TestCase):
             pq.insert(-i, i)
 
         for i in range(19, 0, -1):
+            print(i)
             pq.delete_min(i + 0.5)
             if i == 1:
                 self.assertIsNone(pq.min())

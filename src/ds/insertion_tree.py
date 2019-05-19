@@ -1,8 +1,8 @@
-class PrefixSumBST:
+class InsertionTree:
 
     class __Node:
 
-        def __init__(self, key=None, val=None, height=0, size=0, w=0, active=True):
+        def __init__(self, key=None, val=None, height=0, size=0, active=True):
             self.key = key
             self.val = val
 
@@ -14,14 +14,22 @@ class PrefixSumBST:
             self.right = None
 
             # Retroactive heap
+            self.active = active
+
             self.max_sub = None
             self.min_sub = None
-            self.active  = active
 
-            # Prefix Sum
-            self.w = w
-            self.left_sum  = self.w
-            self.right_sum = 0
+            self.max_left  = None
+
+            self.max_right = None
+            # if not self.active:
+            #     self.max_right = [self.key, self.val]
+
+            self.min_left  = None
+            # if self.active:
+            #     self.min_left = [self.key, self.val]
+
+            self.min_right = None
 
     def __init__(self, cmp=None):
         self.__root = None
@@ -48,35 +56,6 @@ class PrefixSumBST:
         if cmp > 0:
             return self.__parent(x.right, key, x)
         return parent
-
-    def find_bridge_before(self, key):
-        if key is None:
-            raise ValueError("Invalid argument 'key' of None Type")
-        return self.__find_bridge_before(self.predecessor(key), key)
-
-    def __find_bridge_before(self, x, key):
-        if x is None:
-            return key
-        if self.prefix_sum(x) == 0:
-            return x
-        return self.__find_bridge_before(self.predecessor(x), key)
-
-    def prefix_sum(self, key):
-        if key is None:
-            raise ValueError("Invalid argument 'key' of None Type")
-        if key not in self:
-            raise ValueError("'key' = {}, not in BST".format(key))
-        return self.__prefix_sum(self.__root, key)
-
-    def __prefix_sum(self, x, key):
-        if x is None:
-            return 0
-        cmp = self.__compare(key, x.key)
-        if cmp < 0:
-            return self.__prefix_sum(x.left, key)
-        if cmp > 0:
-            return x.left_sum + self.__prefix_sum(x.right, key)
-        return x.left_sum
 
     def update(self, key, active):
         x = self.__get(self.__root, key)
@@ -106,6 +85,42 @@ class PrefixSumBST:
         if cmphi > 0:
             self.__values(x.right, q, lo, hi)
 
+    def max_left(self, key):
+        return self.__max_left(self.__get(self.__root, key))
+
+    def max_right(self, key):
+        return self.__max_right(self.__get(self.__root, key))
+
+    def min_left(self, key):
+        return self.__min_left(self.__get(self.__root, key))
+
+    def min_right(self, key):
+        return self.__min_right(self.__get(self.__root, key))
+
+    @staticmethod
+    def __max_left(x):
+        if x is None:
+            return None
+        return x.max_left
+
+    @staticmethod
+    def __max_right(x):
+        if x is None:
+            return None
+        return x.max_right
+
+    @staticmethod
+    def __min_left(x):
+        if x is None:
+            return None
+        return x.min_left
+
+    @staticmethod
+    def __min_right(x):
+        if x is None:
+            return None
+        return x.min_right
+
     def max_sub(self, key):
         x = self.__get(self.__root, key)
         if x is None:
@@ -129,18 +144,6 @@ class PrefixSumBST:
         if x is None:
             return None
         return x.min_sub
-
-    @staticmethod
-    def __left_sum(x):
-        if x is None:
-            return 0
-        return x.left_sum
-
-    @staticmethod
-    def __right_sum(x):
-        if x is None:
-            return 0
-        return x.right_sum
 
     def rank(self, key):
         if key is None:
@@ -244,63 +247,106 @@ class PrefixSumBST:
     def __contains__(self, key):
         return self[key] is not None
 
-    def put(self, key, val, w=0, active=True):
+    def put(self, key, val, active=True):
         if key is None:
             raise ValueError()
         if val is None:
             self.delete(key)
             return
-        self.__root = self.__put(self.__root, key, val, w, active)
+        self.__root = self.__put(self.__root, key, val, active)
 
-    def __put(self, x, key, val, w, active):
+    def __put(self, x, key, val, active):
         if x is None:
-            return self.__Node(key, val, 0, 1, w, active)
+            return self.__Node(key, val, 0, 1, active)
 
         cmp = self.__compare(key, x.key)
         if cmp < 0:
-            x.left = self.__put(x.left, key, val, w, active)
+            x.left = self.__put(x.left, key, val, active)
         elif cmp > 0:
-            x.right = self.__put(x.right, key, val, w, active)
+            x.right = self.__put(x.right, key, val, active)
         else:
             x.val = val
             x.active = active
-            x.w = w
 
         x.size      = 1 + self.__size(x.left) + self.__size(x.right)
         x.height    = 1 + max(self.__height(x.left), self.__height(x.right))
-        x.left_sum  = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
-        x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
 
-        if x.max_sub is None or x.max_sub < key:
+        if x.max_sub is None or x.max_sub[1] < val:
             if not active:
-                x.max_sub = key
-        if x.min_sub is None or x.min_sub > key:
+                x.max_sub = [key, val]
+        if x.min_sub is None or x.min_sub[1] > val:
             if active:
-                x.min_sub = key
+                x.min_sub = [key, val]
+
+        self.__update_fields(x)
 
         return self.__balance(x)
+
+    def __update_fields(self, x):
+        max_right_cands = list(
+            filter(
+                None.__ne__,
+                [[x.key, x.val] if not x.active else None,
+                 self.__max_right(x),
+                 self.__max_right(x.right),
+                 self.__max_left(x.right)]
+            )
+        )
+
+        max_left_cands = list(
+            filter(
+                None.__ne__,
+                [self.__max_left(x),
+                 self.__max_right(x.left),
+                 self.__max_left(x.left)]
+            )
+        )
+
+        min_right_cands = list(
+            filter(
+                None.__ne__,
+                [self.__min_right(x),
+                 self.__min_right(x.right),
+                 self.__min_left(x.right)]
+            )
+        )
+
+        min_left_cands = list(
+            filter(
+                None.__ne__,
+                [[x.key, x.val] if x.active else None,
+                 self.__min_left(x),
+                 self.__min_right(x.left),
+                 self.__min_left(x.left)]
+            )
+        )
+
+        x.max_right = max(max_right_cands, key=lambda a: a[1]) if len(max_right_cands) > 0 else None
+        x.max_left  = max(max_left_cands, key=lambda a: a[1])  if len(max_left_cands) > 0 else None
+        x.min_right = min(min_right_cands, key=lambda a: a[1]) if len(min_right_cands) > 0 else None
+        x.min_left  = min(min_left_cands, key=lambda a: a[1])  if len(min_left_cands) > 0 else None
 
     def __update_max_min(self, x):
         max_sub = list(filter(None.__ne__, [self.__max_sub(x.left), self.__max_sub(x.right)]))
         min_sub = list(filter(None.__ne__, [self.__min_sub(x.left), self.__min_sub(x.right)]))
         if x.left is not None:
             if x.left.active:
-                min_sub.append(x.left.key)
+                min_sub.append([x.left.key, x.left.val])
             else:
-                max_sub.append(x.left.key)
+                max_sub.append([x.left.key, x.left.val])
         if x.right is not None:
             if x.right.active:
-                min_sub.append(x.right.key)
+                min_sub.append([x.right.key, x.right.val])
             else:
-                max_sub.append(x.right.key)
+                max_sub.append([x.right.key, x.right.val])
         if len(max_sub) == 0:
             x.max_sub = None
         else:
-            x.max_sub = max(max_sub)
+            x.max_sub = max(max_sub, key=lambda l: l[1])
         if len(min_sub) == 0:
             x.min_sub = None
         else:
-            x.min_sub = min(min_sub)
+            x.min_sub = min(min_sub, key=lambda  l: l[1])
 
     def __balance_factor(self, x):
         return self.__height(x.left) - self.__height(x.right)
@@ -328,11 +374,8 @@ class PrefixSumBST:
         self.__update_max_min(x)
         self.__update_max_min(y)
 
-        x.left_sum = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
-        x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
-
-        y.left_sum = y.w + self.__left_sum(y.left) + self.__right_sum(y.left)
-        y.right_sum = self.__left_sum(y.right) + self.__right_sum(y.right)
+        self.__update_fields(x)
+        self.__update_fields(y)
 
         return y
 
@@ -348,11 +391,8 @@ class PrefixSumBST:
         self.__update_max_min(x)
         self.__update_max_min(y)
 
-        x.left_sum  = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
-        x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
-
-        y.left_sum  = y.w + self.__left_sum(y.left) + self.__right_sum(y.left)
-        y.right_sum = self.__left_sum(y.right) + self.__right_sum(y.right)
+        self.__update_fields(x)
+        self.__update_fields(y)
 
         return y
 
@@ -382,9 +422,8 @@ class PrefixSumBST:
 
         x.size      = 1 + self.__size(x.left) + self.__size(x.right)
         x.height    = 1 + max(self.__height(x.left), self.__height(x.right))
-        x.left_sum  = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
-        x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
         self.__update_max_min(x)
+        self.__update_fields(x)
 
         return self.__balance(x)
 
@@ -399,11 +438,9 @@ class PrefixSumBST:
         x.left = self.__delete_min(x.left)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
-
-        x.left_sum = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
-        x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
-
         self.__update_max_min(x)
+        self.__update_fields(x)
+
         return self.__balance(x)
 
     def delete_max(self):
@@ -417,11 +454,9 @@ class PrefixSumBST:
         x.right = self.__delete_max(x.right)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
-
-        x.left_sum = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
-        x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
-
         self.__update_max_min(x)
+        self.__update_fields(x)
+
         return self.__balance(x)
 
     def min(self):
