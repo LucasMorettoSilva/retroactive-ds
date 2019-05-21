@@ -30,37 +30,33 @@ class MinPQPR:
         if self.__updates.empty():
             self.__now.put(key, time)
             self.__updates.put(time, key, 0)
-            self.__update_min()
-
             self.__insertion.put(time, key, True)
-
+            self.__update_min()
             return
 
         bridge = self.__updates.find_bridge_before(time)
-
         bridge = self.__insertion.ceiling(bridge)
-        if bridge:
-            max_in = self.__insertion.max_right(bridge)
-        else: max_in = None
 
-        if max_in is None:
+        if bridge:
+            max_now = self.__insertion.max_right(bridge)
+        else:
+            max_now = None
+
+        if max_now is None:
             max_k = key
         else:
-            max_k = max(max_in.val, key)
+            max_k = max(max_now.val, key)
 
 
-        if max_in and max_k == max_in.val:
-            self.__now.put(max_in.val, max_in.key)
-            self.__insertion.put(max_in.key, max_in.val, active=True)
+        if max_now and max_k == max_now.val:
             self.__updates.put(time, key, 1)
+            self.__now.put(max_now.val, max_now.key)
+            self.__insertion.put(max_now.key, max_now.val, active=True)
         else:
             self.__insertion.put(time, key, active=True)
-            self.__now.put(key, time)
             self.__updates.put(time, key, 0)
-
+            self.__now.put(key, time)
         self.__update_min()
-
-
 
     def delete_min(self, time):
         self.__updates.put(time, "delete-min", -1)
@@ -73,7 +69,6 @@ class MinPQPR:
             min_k = self.__min
             min_t = self.__now.get(min_k)
 
-
             self.__now.delete_min()
             self.__update_min()
 
@@ -82,15 +77,15 @@ class MinPQPR:
             return min_k
 
         bridge = self.__updates.find_bridge_after(time)
+        bridge = self.__insertion.floor(bridge)
 
-        min_in = self.__insertion.min_left(self.__insertion.floor(bridge))
-        min_k = min_in.val
+        min_now = self.__insertion.min_left(bridge)
 
-        self.__now.delete(min_k)
+        self.__insertion.put(min_now.key, min_now.val, False)
+        self.__now.delete(min_now.val)
         self.__update_min()
-        self.__insertion.put(min_in.key, min_in.val, False)
 
-        return min_k
+        return min_now.val
 
     def delete(self, time):
         if time is None:
@@ -101,18 +96,20 @@ class MinPQPR:
 
         if self.__updates.get(time) == "delete-min":
             bridge = self.__updates.find_bridge_before(time)
+            bridge = self.__insertion.ceiling(bridge)
 
-            max_in = self.__insertion.max_right(self.__insertion.ceiling(bridge))
+            max_now = self.__insertion.max_right(bridge)
 
-            self.__now.put(max_in.val, max_in.key)
-            self.__insertion.put(max_in.key, max_in.val, True)
+            self.__now.put(max_now.val, max_now.key)
+            self.__insertion.put(max_now.key, max_now.val, True)
         else:
             bridge = self.__updates.find_bridge_after(time)
-            min_in = self.__insertion.min_left(self.__insertion.floor(bridge))
-            min_k = min_in.val
+            bridge = self.__insertion.floor(bridge)
 
-            self.__now.delete(min_k)
-            self.__insertion.delete(min_in.key)
+            min_now = self.__insertion.min_left(bridge)
+
+            self.__now.delete(min_now.val)
+            self.__insertion.delete(min_now.key)
 
         self.__updates.delete(time)
         self.__update_min()

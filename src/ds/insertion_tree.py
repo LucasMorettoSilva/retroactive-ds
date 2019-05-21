@@ -257,11 +257,11 @@ class InsertionTree:
         x.size      = 1 + self.__size(x.left) + self.__size(x.right)
         x.height    = 1 + max(self.__height(x.left), self.__height(x.right))
 
-        self.__update_fields(x)
+        self.__update_max_min(x)
 
         return self.__balance(x)
 
-    def __update_fields(self, x):
+    def __update_max_min(self, x):
         max_right_cands = list(
             filter(
                 None.__ne__,
@@ -326,8 +326,8 @@ class InsertionTree:
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
 
-        self.__update_fields(x)
-        self.__update_fields(y)
+        self.__update_max_min(x)
+        self.__update_max_min(y)
 
         return y
 
@@ -340,8 +340,8 @@ class InsertionTree:
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
 
-        self.__update_fields(x)
-        self.__update_fields(y)
+        self.__update_max_min(x)
+        self.__update_max_min(y)
 
         return y
 
@@ -369,7 +369,7 @@ class InsertionTree:
 
         x.size      = 1 + self.__size(x.left) + self.__size(x.right)
         x.height    = 1 + max(self.__height(x.left), self.__height(x.right))
-        self.__update_fields(x)
+        self.__update_max_min(x)
 
         return self.__balance(x)
 
@@ -384,7 +384,7 @@ class InsertionTree:
         x.left = self.__delete_min(x.left)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
-        self.__update_fields(x)
+        self.__update_max_min(x)
 
         return self.__balance(x)
 
@@ -399,7 +399,7 @@ class InsertionTree:
         x.right = self.__delete_max(x.right)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
-        self.__update_fields(x)
+        self.__update_max_min(x)
 
         return self.__balance(x)
 
