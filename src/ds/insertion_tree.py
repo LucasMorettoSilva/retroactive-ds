@@ -16,20 +16,20 @@ class InsertionTree:
             # Retroactive heap
             self.active = active
 
-            self.max_sub = None
-            self.min_sub = None
-
             self.max_left  = None
 
             self.max_right = None
             if not self.active:
-                self.max_right = [self.key, self.val]
+                self.max_right = self
 
             self.min_left  = None
             if self.active:
-                self.min_left = [self.key, self.val]
+                self.min_left = self
 
             self.min_right = None
+
+        def __str__(self):
+            return "[{}, {}, {}]".format(self.key, self.val, self.active)
 
     def __init__(self, cmp=None):
         self.__root = None
@@ -57,14 +57,6 @@ class InsertionTree:
             return self.__parent(x.right, key, x)
         return parent
 
-    def update(self, key, active):
-        x = self.__get(self.__root, key)
-        x.active = active
-        parent = self.__parent(self.__root, key, None)
-        while parent is not None:
-            self.__update_max_min(parent)
-            parent = self.__parent(self.__root, parent.key, None)
-
     def values(self, lo, hi):
         if lo is None or \
            hi is None:
@@ -85,17 +77,35 @@ class InsertionTree:
         if cmphi > 0:
             self.__values(x.right, q, lo, hi)
 
-    def max_left(self, key):
-        return self.__max_left(self.__get(self.__root, key))
-
     def max_right(self, key):
-        return self.__max_right(self.__get(self.__root, key))
+        return self._max_right(self.__root, key)
+
+    def _max_right(self, x, key):
+        cmp = self.__compare(key, x.key)
+        if cmp < 0:
+            if x.max_right:
+                return max(x.max_right, self._max_right(x.left, key), key=lambda a: a.val)
+            return self._max_right(x.left, key)
+        if cmp > 0:
+            return self._max_right(x.right, key)
+        if x.max_right:
+            return x.max_right
+        return self.__Node(val=float("-inf"))
 
     def min_left(self, key):
-        return self.__min_left(self.__get(self.__root, key))
+        return self._min_left(self.__root, key)
 
-    def min_right(self, key):
-        return self.__min_right(self.__get(self.__root, key))
+    def _min_left(self, x, key):
+        cmp = self.__compare(key, x.key)
+        if cmp > 0:
+            if x.min_left:
+                return min(x.min_left, self._min_left(x.right, key), key=lambda a: a.val)
+            return self._min_left(x.right, key)
+        if cmp < 0:
+            return self._min_left(x.left, key)
+        if x.min_left:
+            return x.min_left
+        return self.__Node(val=float("inf"))
 
     @staticmethod
     def __max_left(x):
@@ -120,30 +130,6 @@ class InsertionTree:
         if x is None:
             return None
         return x.min_right
-
-    def max_sub(self, key):
-        x = self.__get(self.__root, key)
-        if x is None:
-            return None
-        return x.max_sub
-
-    def min_sub(self, key):
-        x = self.__get(self.__root, key)
-        if x is None:
-            return None
-        return x.min_sub
-
-    @staticmethod
-    def __max_sub(x):
-        if x is None:
-            return None
-        return x.max_sub
-
-    @staticmethod
-    def __min_sub(x):
-        if x is None:
-            return None
-        return x.min_sub
 
     def rank(self, key):
         if key is None:
@@ -271,13 +257,6 @@ class InsertionTree:
         x.size      = 1 + self.__size(x.left) + self.__size(x.right)
         x.height    = 1 + max(self.__height(x.left), self.__height(x.right))
 
-        if x.max_sub is None or x.max_sub[1] < val:
-            if not active:
-                x.max_sub = [key, val]
-        if x.min_sub is None or x.min_sub[1] > val:
-            if active:
-                x.min_sub = [key, val]
-
         self.__update_fields(x)
 
         return self.__balance(x)
@@ -286,65 +265,43 @@ class InsertionTree:
         max_right_cands = list(
             filter(
                 None.__ne__,
-                [[x.key, x.val] if not x.active else None,
-                 self.__max_right(x.right),
-                 self.__max_left(x.right)]
+                [x if not x.active else None,
+                 self.__max_right(x.right) if self.__max_right(x.right) and not self.__max_right(x.right).active else None,
+                 self.__max_left(x.right)  if self.__max_left(x.right)  and not self.__max_left(x.right).active  else None]
             )
         )
 
         max_left_cands = list(
             filter(
                 None.__ne__,
-                [self.__max_left(x),
-                 self.__max_right(x.left),
-                 self.__max_left(x.left)]
+                [
+                 self.__max_right(x.left) if self.__max_right(x.left) and not self.__max_right(x.left).active else None ,
+                 self.__max_left(x.left) if self.__max_left(x.left) and not self.__max_left(x.left).active else None]
             )
         )
 
         min_right_cands = list(
             filter(
                 None.__ne__,
-                [self.__min_right(x),
-                 self.__min_right(x.right),
-                 self.__min_left(x.right)]
+                [
+                 self.__min_right(x.right) if self.__min_right(x.right) and self.__min_right(x.right).active else None,
+                 self.__min_left(x.right) if self.__min_left(x.right) and self.__min_left(x.right).active else None]
             )
         )
 
         min_left_cands = list(
             filter(
                 None.__ne__,
-                [[x.key, x.val] if x.active else None,
-                 self.__min_right(x.left),
-                 self.__min_left(x.left)]
+                [x if x.active else None,
+                 self.__min_right(x.left) if self.__min_right(x.left) and self.__min_right(x.left).active else None,
+                 self.__min_left(x.left) if self.__min_left(x.left) and self.__min_left(x.left).active else None]
             )
         )
 
-        x.max_right = max(max_right_cands, key=lambda a: a[1]) if len(max_right_cands) > 0 else None
-        x.max_left  = max(max_left_cands, key=lambda a: a[1])  if len(max_left_cands)  > 0 else None
-        x.min_right = min(min_right_cands, key=lambda a: a[1]) if len(min_right_cands) > 0 else None
-        x.min_left  = min(min_left_cands, key=lambda a: a[1])  if len(min_left_cands)  > 0 else None
-
-    def __update_max_min(self, x):
-        max_sub = list(filter(None.__ne__, [self.__max_sub(x.left), self.__max_sub(x.right)]))
-        min_sub = list(filter(None.__ne__, [self.__min_sub(x.left), self.__min_sub(x.right)]))
-        if x.left is not None:
-            if x.left.active:
-                min_sub.append([x.left.key, x.left.val])
-            else:
-                max_sub.append([x.left.key, x.left.val])
-        if x.right is not None:
-            if x.right.active:
-                min_sub.append([x.right.key, x.right.val])
-            else:
-                max_sub.append([x.right.key, x.right.val])
-        if len(max_sub) == 0:
-            x.max_sub = None
-        else:
-            x.max_sub = max(max_sub, key=lambda l: l[1])
-        if len(min_sub) == 0:
-            x.min_sub = None
-        else:
-            x.min_sub = min(min_sub, key=lambda  l: l[1])
+        x.max_right = max(max_right_cands, key=lambda a: a.val) if len(max_right_cands) > 0 else None
+        x.max_left  = max(max_left_cands, key=lambda a: a.val)  if len(max_left_cands)  > 0 else None
+        x.min_right = min(min_right_cands, key=lambda a: a.val) if len(min_right_cands) > 0 else None
+        x.min_left  = min(min_left_cands, key=lambda a: a.val)  if len(min_left_cands)  > 0 else None
 
     def __balance_factor(self, x):
         return self.__height(x.left) - self.__height(x.right)
@@ -369,9 +326,6 @@ class InsertionTree:
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
 
-        self.__update_max_min(x)
-        self.__update_max_min(y)
-
         self.__update_fields(x)
         self.__update_fields(y)
 
@@ -385,9 +339,6 @@ class InsertionTree:
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
-
-        self.__update_max_min(x)
-        self.__update_max_min(y)
 
         self.__update_fields(x)
         self.__update_fields(y)
@@ -415,12 +366,9 @@ class InsertionTree:
             x = self.__min(y.right)
             x.right = self.__delete_min(y.right)
             x.left = y.left
-            x.max_sub = y.max_sub
-            x.min_sub = y.min_sub
 
         x.size      = 1 + self.__size(x.left) + self.__size(x.right)
         x.height    = 1 + max(self.__height(x.left), self.__height(x.right))
-        self.__update_max_min(x)
         self.__update_fields(x)
 
         return self.__balance(x)
@@ -436,7 +384,6 @@ class InsertionTree:
         x.left = self.__delete_min(x.left)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
-        self.__update_max_min(x)
         self.__update_fields(x)
 
         return self.__balance(x)
@@ -452,7 +399,6 @@ class InsertionTree:
         x.right = self.__delete_max(x.right)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
-        self.__update_max_min(x)
         self.__update_fields(x)
 
         return self.__balance(x)
