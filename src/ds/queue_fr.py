@@ -107,11 +107,7 @@ class QueueFR:
         rank = self.__te.rank(self.__te.floor(time))
         back_time = self.__te.select(rank)
 
-        keys = self.__te.keys(front_time, back_time)
-        res = []
-        for k in keys:
-            res.append(self.__te.get(k))
-        return str(res)
+        return str(self.__te.values(front_time, back_time))
 
     def size(self, time=None):
         if time is None:

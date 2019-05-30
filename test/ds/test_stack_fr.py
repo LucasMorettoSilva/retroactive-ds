@@ -180,27 +180,27 @@ class TestStackFR(unittest.TestCase):
             else:
                 self.assertEqual(19, s.top())
 
-    # def test_print_withNotUsedStackAndDifferentTimes_shouldReturnEmptyStackRepresentationAlways(self):
-    #     s = StackFR()
-    #     for i in range(-20, 20):
-    #         self.assertEqual("[]", s.print(i))
-    #
-    # def test_print_withUsedStack_shouldReturnCorrectValuesAtStackInGivenTime(self):
-    #     s = StackFR()
-    #     expected = ["[]"]
-    #     e = []
-    #     for i in range(1, 20):
-    #         e.insert(0, i)
-    #         s.push(i, i)
-    #         self.assertEqual(str(e), s.print())
-    #         self.assertEqual(str(e), s.print(i))
-    #         self.assertEqual(str(e), s.print(i + 0.5))
-    #         expected.append(str(e))
-    #
-    #     for i in range(20):
-    #         self.assertEqual(expected[i], s.print(i))
-    #         self.assertEqual(expected[i], s.print(i + 0.5))
-    #
-    #     for i in range(1, 20):
-    #         s.pop(19 + i)
-    #         self.assertEqual(expected[19 - i], s.print())
+    def test_print_withNotUsedStackAndDifferentTimes_shouldReturnEmptyStackRepresentationAlways(self):
+        s = StackFR()
+        for i in range(-20, 20):
+            self.assertEqual("[]", s.print(i))
+
+    def test_print_withUsedStack_shouldReturnCorrectValuesAtStackInGivenTime(self):
+        s = StackFR()
+        expected = ["[]"]
+        e = []
+        for i in range(1, 20):
+            e.insert(0, i)
+            s.push(i, i)
+            self.assertEqual(str(e), s.print())
+            self.assertEqual(str(e), s.print(i))
+            self.assertEqual(str(e), s.print(i + 0.5))
+            expected.append(str(e))
+
+        for i in range(20):
+            self.assertEqual(expected[i], s.print(i))
+            self.assertEqual(expected[i], s.print(i + 0.5))
+        #
+        # for i in range(1, 20):
+        #     s.pop(19 + i)
+        #     self.assertEqual(expected[19 - i], s.print())
