@@ -3,15 +3,35 @@ from src.ds.avl_tree import AVLTree
 
 class StackFR:
 
+    class Node:
+
+        def __init__(self, type, value):
+            self.type  = type
+            self.value = value
+
     def __init__(self):
-        self.__top  = None
+        self.__top = None
+
+        self.__op  = AVLTree()
+
         self.__push = AVLTree()
         self.__pop  = AVLTree()
         self.__cur_time = 0
 
     def top(self, time=None):
-        if time is None:
+        if time is None or time >= self.__cur_time:
             return self.__top
+
+        time = self.__op.floor(time)
+        if time is None:
+            return None
+
+        operation = self.__op[time]
+        if operation.type == "PUSH":
+            return operation.value
+
+        # TODO
+
 
         if self.__push.empty():
             return None
@@ -28,7 +48,6 @@ class StackFR:
 
         if pop_time is None or push_time > pop_time:
             return self.__push.get(push_time)
-
 
         push_rank = self.__push.rank(push_time)
         pop_rank  = self.__pop.rank(pop_time)

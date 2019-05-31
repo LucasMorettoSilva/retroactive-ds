@@ -68,6 +68,23 @@ class PrefixSumBST:
             return x
         return self.__find_bridge_after(self.successor(x), key)
 
+    def suffix_sum(self, start, end):
+        if start is None or end is None:
+            raise ValueError("Invalid argument 'key' of None Type")
+        if start not in self or end not in self:
+            raise ValueError("'key' = {}, not in BST".format(start))
+        return self.__suffix_sum(self.__get(self.__root, start), start, end)
+
+    def __suffix_sum(self, x, start, end):
+        if x is None:
+            return 0
+        cmp = self.__compare(end, x.key)
+        if cmp < 0:
+            return self.__suffix_sum(x.left, key)
+        if cmp > 0:
+            return x.left_sum + self.__prefix_sum(x.right, key)
+        return x.left_sum
+
     def prefix_sum(self, key):
         if key is None:
             raise ValueError("Invalid argument 'key' of None Type")

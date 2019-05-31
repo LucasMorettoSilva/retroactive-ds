@@ -446,9 +446,8 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(2, len(bst))
         self.assertEqual(1, bst.height())
 
-    def test_deleteMax_withEmptyBST_shouldRaiseAttributeError(self):
-        with self.assertRaises(AttributeError):
-            AVLTree().delete_max()
+    def test_deleteMax_withEmptyBST_shouldReturnNone(self):
+        self.assertIsNone(AVLTree().delete_max())
 
     def test_deleteMax_withNotEmptyBST_shouldDeleteMaxKeyFromBSTAndDecreaseBSTLength(self):
         bst = AVLTree()
@@ -473,9 +472,8 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(0, len(bst))
         self.assertNotIn("A", bst)
 
-    def test_deleteMin_withEmptyBST_shouldRaiseAttributeError(self):
-        with self.assertRaises(AttributeError):
-            AVLTree().delete_min()
+    def test_deleteMin_withEmptyBST_shouldReturnNone(self):
+        self.assertIsNone(AVLTree().delete_min())
 
     def test_deleteMin_withNotEmptyBST_shouldDeleteMinKeyFromBSTAndDecreaseBSTLength(self):
         bst = AVLTree()
@@ -500,9 +498,8 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(0, len(bst))
         self.assertNotIn("D", bst)
 
-    def test_max_withEmptyBST_shouldRaiseAttributeError(self):
-        with self.assertRaises(AttributeError):
-            AVLTree().max()
+    def test_max_withEmptyBST_shouldReturnNone(self):
+        self.assertIsNone(AVLTree().max())
 
     def test_max_withNotEmptyBST_shouldReturnMaxKeyFromBST(self):
         bst = AVLTree()
@@ -527,9 +524,8 @@ class TestAVLTree(unittest.TestCase):
         bst.delete_max()
         self.assertEqual("A", bst.max())
 
-    def test_min_withEmptyBST_shouldRaiseAttributeError(self):
-        with self.assertRaises(AttributeError):
-            AVLTree().min()
+    def test_min_withEmptyBST_shouldReturnNone(self):
+        self.assertIsNone(AVLTree().min())
 
     def test_min_withNotEmptyBST_shouldReturnMaxKeyFromBST(self):
         bst = AVLTree()
@@ -624,9 +620,10 @@ class TestAVLTree(unittest.TestCase):
         with self.assertRaises(ValueError):
             AVLTree().floor(None)
 
-    def test_floor_withEmptyBST_shouldRaiseAttributeError(self):
-        with self.assertRaises(AttributeError):
-            AVLTree().floor(1)
+    def test_floor_withEmptyBST_shouldReturnNone(self):
+        bst = AVLTree()
+        for i in range(200):
+            self.assertIsNone(bst.floor(i))
 
     def test_floor_withArgumentNotInBSTHavingFloorValue_shouldReturnGreaterStrictlyLowerElementFromBST(self):
         bst = AVLTree()
@@ -656,9 +653,10 @@ class TestAVLTree(unittest.TestCase):
         with self.assertRaises(ValueError):
             AVLTree().ceiling(None)
 
-    def test_ceiling_withEmptyBST_shouldRaiseAttributeError(self):
-        with self.assertRaises(AttributeError):
-            AVLTree().ceiling(1)
+    def test_ceiling_withEmptyBST_shouldReturnNone(self):
+        bst = AVLTree()
+        for i in range(200):
+            self.assertIsNone(bst.ceiling(i))
 
     def test_ceiling_withArgumentNotInBSTHavingCeilingValue_shouldReturnSmallerStrictlyGreaterElementFromBST(self):
         bst = AVLTree()

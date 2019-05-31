@@ -2,7 +2,7 @@ class AVLTree:
 
     class __Node:
 
-        def __init__(self, key=None, val=None, height=0, size=0):
+        def __init__(self, key=None, val=None, height=0, size=0, parent=None):
             self.key = key
             self.val = val
 
@@ -11,8 +11,9 @@ class AVLTree:
             self.size   = size
 
             # Children
-            self.left  = None
-            self.right = None
+            self.left   = None
+            self.right  = None
+            self.parent = parent
 
     def __init__(self, cmp=None):
         self.__root = None
@@ -32,7 +33,7 @@ class AVLTree:
 
     def rank(self, key):
         if key is None:
-            raise ValueError()
+            raise ValueError("Illegal argument 'key' of None type")
         return self.__rank(self.__root, key)
 
     def __rank(self, x, key):
@@ -47,7 +48,7 @@ class AVLTree:
 
     def successor(self, key):
         if key is None:
-            raise ValueError("Illegal argument of None type")
+            raise ValueError("Illegal argument 'key' of None type")
         if key not in self:
             return None
         x = self.__successor(self.__root, key)
@@ -68,7 +69,7 @@ class AVLTree:
 
     def predecessor(self, key):
         if key is None:
-            raise ValueError("Illegal argument of None type")
+            raise ValueError("Illegal argument 'key' of None type")
         if key not in self:
             return None
         x = self.__predecessor(self.__root, key)
@@ -91,7 +92,7 @@ class AVLTree:
         return self.__root is None
 
     def size(self):
-        return AVLTree.__size(self.__root)
+        return self.__size(self.__root)
 
     @staticmethod
     def __size(x):
@@ -100,7 +101,7 @@ class AVLTree:
         return x.size
 
     def height(self):
-        return AVLTree.__height(self.__root)
+        return self.__height(self.__root)
 
     @staticmethod
     def __height(x):
@@ -118,7 +119,7 @@ class AVLTree:
 
     def get(self, key):
         if key is None:
-            raise ValueError("Illegal argument of None type")
+            raise ValueError("Illegal argument 'key' of None type")
         x = self.__get(self.__root, key)
         if x is None:
             return None
@@ -139,20 +140,20 @@ class AVLTree:
 
     def put(self, key , val):
         if key is None:
-            raise ValueError()
+            raise ValueError("Illegal argument 'key' of None type")
         if val is None:
             self.delete(key)
             return
-        self.__root = self.__put(self.__root, key , val)
+        self.__root = self.__put(self.__root, key , val, None)
 
-    def __put(self, x, key, val):
+    def __put(self, x, key, val, parent):
         if x is None:
-            return AVLTree.__Node(key, val, 0, 1)
+            return self.__Node(key, val, 0, 1, parent)
         cmp = self.__compare(key, x.key)
         if cmp < 0:
-            x.left = self.__put(x.left, key, val)
+            x.left = self.__put(x.left, key, val, x)
         elif cmp > 0:
-            x.right = self.__put(x.right, key, val)
+            x.right = self.__put(x.right, key, val, x)
         else:
             x.val = val
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
@@ -178,9 +179,15 @@ class AVLTree:
         x.left = y.right
         y.right = x
         y.size = x.size
-        x.size = 1 + self.__size(x.left) + self.__size(x.right)
+        x.size   = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
+
+        y.parent = x.parent
+        x.parent = y
+        if y.right:
+            y.right.parent = x
+
         return y
 
     def __rotate_left(self, x):
@@ -191,36 +198,47 @@ class AVLTree:
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         y.height = 1 + max(self.__height(y.left), self.__height(y.right))
+
+        y.parent = x.parent
+        x.parent = y
+        if y.left:
+            y.left.parent = x
+
         return y
 
     def delete(self, key):
         if key is None:
-            raise ValueError()
+            raise ValueError("Illegal argument 'key' of None type")
         if key in self:
-            self.__root = self.__delete(self.__root, key)
+            self.__root = self.__delete(self.__root, key, None)
 
-    def __delete(self, x, key):
+    def __delete(self, x, key, parent):
         cmp = self.__compare(key, x.key)
         if cmp < 0:
-            x.left = self.__delete(x.left, key)
+            x.left = self.__delete(x.left, key, x)
         elif cmp > 0:
-            x.right = self.__delete(x.right, key)
+            x.right = self.__delete(x.right, key, x)
         else:
             if x.left is None:
+                if x.right:
+                    x.right.parent = parent
                 return x.right
             if x.right is None:
+                if x.left:
+                    x.left.parent = parent
                 return x.left
             y = x
             x = self.__min(y.right)
             x.right = self.__delete_min(y.right)
             x.left = y.left
+            x.parent = y.parent
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
         return self.__balance(x)
 
     def delete_min(self):
         if self.empty():
-            raise AttributeError("AVL Tree underflow")
+            return None
         self.__root = self.__delete_min(self.__root)
 
     def __delete_min(self, x):
@@ -229,11 +247,15 @@ class AVLTree:
         x.left = self.__delete_min(x.left)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
+
+        if x.left:
+            x.left.parent = x
+
         return self.__balance(x)
 
     def delete_max(self):
         if self.empty():
-            raise AttributeError("AVL Tree underflow")
+            return None
         self.__root = self.__delete_max(self.__root)
 
     def __delete_max(self, x):
@@ -242,11 +264,15 @@ class AVLTree:
         x.right = self.__delete_max(x.right)
         x.size = 1 + self.__size(x.left) + self.__size(x.right)
         x.height = 1 + max(self.__height(x.left), self.__height(x.right))
+
+        if x.right:
+            x.right.parent = x
+
         return self.__balance(x)
 
     def min(self):
         if self.empty():
-            raise AttributeError("AVL Tree underflow")
+            return None
         return self.__min(self.__root).key
 
     def __min(self, x):
@@ -256,7 +282,7 @@ class AVLTree:
 
     def max(self):
         if self.empty():
-            raise AttributeError("AVL Tree underflow")
+            return None
         return self.__max(self.__root).key
 
     def __max(self, x):
@@ -319,9 +345,7 @@ class AVLTree:
 
     def floor(self, key):
         if key is None:
-            raise ValueError("Illegal argument of None type")
-        if self.empty():
-            raise AttributeError("AVLTree underflow")
+            raise ValueError("Illegal argument 'key' of None type")
         x = self.__floor(self.__root, key)
         if x is None:
             return None
@@ -342,9 +366,7 @@ class AVLTree:
 
     def ceiling(self, key):
         if key is None:
-            raise ValueError("Illegal argument of None type")
-        if self.empty():
-            raise AttributeError("AVLTree underflow")
+            raise ValueError("Illegal argument 'key' of None type")
         x = self.__ceiling(self.__root, key)
         if x is None:
             return None
