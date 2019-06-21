@@ -1,8 +1,8 @@
-class PrefixSumBST:
+class Tree:
 
     class __Node:
 
-        def __init__(self, key=None, val=None, height=0, size=0, w=0):
+        def __init__(self, key=None, val=None, height=0, size=0, w=0, ss=0):
             self.key = key
             self.val = val
 
@@ -27,6 +27,7 @@ class PrefixSumBST:
 
             self.max_sub = self.w
             self.min_sub = self.w
+            self.ss = ss
 
     def __init__(self, cmp=None):
         self.__root = None
@@ -57,14 +58,18 @@ class PrefixSumBST:
     def find_bridge_before(self, key):
         if key is None:
             raise ValueError("Invalid argument 'key' of None Type")
-        return self.__find_bridge_before(self.predecessor(key), key)
+        s = self.successor(key)
+        if s:
+            return self.__find_bridge_before(self.predecessor(key), key,
+                                             self.suffix_sum(s))
+        return self.__find_bridge_before(self.predecessor(key), key, 0)
 
-    def __find_bridge_before(self, x, key):
+    def __find_bridge_before(self, x, key, sub):
         if x is None:
-            return key
-        if self.prefix_sum(x) == 0:
+            return None
+        if self.suffix_sum(x) - sub == 1:
             return x
-        return self.__find_bridge_before(self.predecessor(x), key)
+        return self.__find_bridge_before(self.predecessor(x), key, sub)
 
     def find_bridge_after(self, key):
         if key is None:
@@ -92,7 +97,7 @@ class PrefixSumBST:
         if cmp < 0:
             return x.w + x.right_sum + self.__suffix_sum(x.left, key)
         if cmp > 0:
-            return self.__prefix_sum(x.right, key)
+            return self.__suffix_sum(x.right, key)
         return x.right_sum + x.w
 
     def prefix_sum(self, key):
@@ -150,7 +155,7 @@ class PrefixSumBST:
     def __ss(self, x):
         if x is None:
             return 0
-        return self.suffix_sum(x.key)
+        return x.ss
 
     @staticmethod
     def __w(x):
@@ -316,14 +321,15 @@ class PrefixSumBST:
             return
         self.__root = self.__put(self.__root, key, val, w)
 
-    def __put(self, x, key, val, w):
+    def __put(self, x, key, val, w, ss=0):
         if x is None:
-            return self.__Node(key, val, 0, 1, w)
+            return self.__Node(key, val, 0, 1, w, ss + w)
 
         cmp = self.__compare(key, x.key)
         if cmp < 0:
-            x.left = self.__put(x.left, key, val, w)
+            x.left = self.__put(x.left, key, val, w, ss + self.__left_sum(x.right) + self.__right_sum(x.right) + self.__w(x.right))
         elif cmp > 0:
+            x.ss += w
             x.right = self.__put(x.right, key, val, w)
         else:
             x.val = val
@@ -490,8 +496,6 @@ class PrefixSumBST:
     def floor(self, key):
         if key is None:
             raise ValueError("Illegal argument of None type")
-        if self.empty():
-            raise AttributeError("AVLTree underflow")
         x = self.__floor(self.__root, key)
         if x is None:
             return None

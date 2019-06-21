@@ -1,5 +1,7 @@
 from src.ds.avl_tree import AVLTree
 
+from src.ds.tree     import Tree
+
 
 class StackFR:
 
@@ -12,7 +14,7 @@ class StackFR:
     def __init__(self):
         self.__top = None
 
-        self.__op  = AVLTree()
+        self.__op  = Tree()
 
         self.__push = AVLTree()
         self.__pop  = AVLTree()
@@ -20,7 +22,7 @@ class StackFR:
 
     def top(self, time=None):
         if time is None or time >= self.__cur_time:
-            return self.__top
+            time = self.__cur_time
 
         time = self.__op.floor(time)
         if time is None:
@@ -30,28 +32,11 @@ class StackFR:
         if operation.type == "PUSH":
             return operation.value
 
-        # TODO
+        operation = self.__op.find_bridge_before(time)
 
-
-        if self.__push.empty():
-            return None
-
-        if self.size(time) == 0:
-            return None
-
-        push_time = self.__push.floor(time)
-
-        if self.__pop.empty():
-            return self.__push.get(push_time)
-
-        pop_time = self.__pop.floor(time)
-
-        if pop_time is None or push_time > pop_time:
-            return self.__push.get(push_time)
-
-        push_rank = self.__push.rank(push_time)
-        pop_rank  = self.__pop.rank(pop_time)
-        return self.__push.get(self.__push.select(push_rank - pop_rank - 1))
+        if operation:
+            return self.__op[operation].value
+        return None
 
     def push(self, val, time):
         if val  is None or \
@@ -64,10 +49,13 @@ class StackFR:
             self.__top = val
 
         self.__push.put(time, val)
+        self.__op.put(time, self.Node("PUSH", val), 1)
 
     def delete(self, time):
         if time is None:
            raise ValueError("Invalid 'time' argument of None Type")
+
+        self.__op.delete(time)
 
         if time in self.__push:
             self.__push.delete(time)
@@ -83,10 +71,13 @@ class StackFR:
         self.__check_time(time)
         self.__update_time(time)
 
-        self.__pop.put(time, time)
-        self.__top = self.top(self.__cur_time)
+        self.__op.put(time, self.Node("POP", time), -1)
 
-        return self.__top
+        self.__pop.put(time, time)
+        # self.__top = self.top(self.__cur_time)
+        #
+        #
+        # return self.__top
 
     def size(self, time=None):
         if time is None:
