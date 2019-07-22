@@ -136,16 +136,16 @@ class PrefixSumBST:
         if x is not None:
             x.left_sum  = x.w + self.__left_sum(x.left) + self.__right_sum(x.left)
             x.right_sum = self.__left_sum(x.right) + self.__right_sum(x.right)
-
-            max_left  = max(self.__ss(x.left),  self.__max_sub(x.left))
-            max_right = max(self.__ss(x.right), self.__max_sub(x.right))
-
-            min_left  = min(self.__ss(x.left),  self.__min_sub(x.left))
-            min_right = min(self.__ss(x.right), self.__min_sub(x.right))
-
-
-            x.max_sub = max(max_left, max_right)
-            x.min_sub = min(min_left, min_right)
+            #
+            # max_left  = max(self.__ss(x.left),  self.__max_sub(x.left))
+            # max_right = max(self.__ss(x.right), self.__max_sub(x.right))
+            #
+            # min_left  = min(self.__ss(x.left),  self.__min_sub(x.left))
+            # min_right = min(self.__ss(x.right), self.__min_sub(x.right))
+            #
+            #
+            # x.max_sub = max(max_left, max_right)
+            # x.min_sub = min(min_left, min_right)
 
     def __ss(self, x):
         if x is None:

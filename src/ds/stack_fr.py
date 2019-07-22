@@ -74,10 +74,6 @@ class StackFR:
         self.__op.put(time, self.Node("POP", time), -1)
 
         self.__pop.put(time, time)
-        # self.__top = self.top(self.__cur_time)
-        #
-        #
-        # return self.__top
 
     def size(self, time=None):
         if time is None:
